@@ -151,6 +151,9 @@ const (
 	ErrOverlappingConfigs
 	ErrUnsupportedNotification
 
+	// Lifecycle errors.
+	ErrMalformedLifecycle
+
 	// S3 extended errors.
 	ErrContentSHA256Mismatch
 
@@ -675,6 +678,13 @@ var errorCodeResponse = map[APIErrorCode]APIError{
 	ErrInvalidSSECustomerParameters: {
 		Code:           "InvalidArgument",
 		Description:    "The provided encryption parameters did not match the ones used originally.",
+		HTTPStatusCode: http.StatusBadRequest,
+	},
+
+	/// Lifecycle errors.
+	ErrMalformedLifecycle: {
+		Code:           "MalformedLifecycle",
+		Description:    "Lifecycle has invalid rules.",
 		HTTPStatusCode: http.StatusBadRequest,
 	},
 

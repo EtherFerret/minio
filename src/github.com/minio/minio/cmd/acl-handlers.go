@@ -21,32 +21,44 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	ACL "github.com/minio/minio/pkg/acl"
 	"github.com/minio/minio/pkg/policy"
+	"io"
 )
 
-// Data types used for returning dummy access control
-// policy XML, these variables shouldn't be used elsewhere
-// they are only defined to be used in this file alone.
-type grantee struct {
-	XMLNS       string `xml:"xmlns:xsi,attr"`
-	XMLXSI      string `xml:"xsi:type,attr"`
-	Type        string `xml:"Type"`
-	ID          string `xml:"ID,omitempty"`
-	DisplayName string `xml:"DisplayName,omitempty"`
-	URI         string `xml:"URI,omitempty"`
-}
+func (api objectAPIHandlers) PutBucketACLHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := newContext(r, "SetBucketACL")
 
-type grant struct {
-	Grantee    grantee `xml:"Grantee"`
-	Permission string  `xml:"Permission"`
-}
+	vars := mux.Vars(r)
+	bucket := vars["bucket"]
 
-type accessControlPolicy struct {
-	XMLName           xml.Name `xml:"AccessControlPolicy"`
-	Owner             Owner    `xml:"Owner"`
-	AccessControlList struct {
-		Grants []grant `xml:"Grant"`
-	} `xml:"AccessControlList"`
+	objAPI := api.ObjectAPI()
+	if objAPI == nil {
+		writeErrorResponse(w, ErrServerNotInitialized, r.URL)
+		return
+	}
+
+	// Allow getBucketACL if policy action is set, since this is a dummy call
+	// we are simply re-purposing the bucketPolicyAction.
+	if s3Error := checkRequestAuthType(ctx, r, policy.GetBucketPolicyAction, bucket, ""); s3Error != ErrNone {
+		writeErrorResponse(w, s3Error, r.URL)
+		return
+	}
+
+	aclPolicy, err := ACL.ParseConfig(io.LimitReader(r.Body, r.ContentLength), bucket)
+	if err != nil {
+		writeErrorResponse(w, ErrMalformedPolicy, r.URL)
+		return
+	}
+
+	err = objAPI.SetBucketAccessControlPolicy(ctx, bucket, aclPolicy)
+	if err != nil {
+		writeErrorResponse(w, toAPIErrorCode(err), r.URL)
+		return
+	}
+
+	// Success.
+	writeSuccessNoContent(w)
 }
 
 // GetBucketACLHandler - GET Bucket ACL
@@ -79,21 +91,33 @@ func (api objectAPIHandlers) GetBucketACLHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	acl := &accessControlPolicy{}
-	acl.AccessControlList.Grants = append(acl.AccessControlList.Grants, grant{
-		Grantee: grantee{
-			XMLNS:  "http://www.w3.org/2001/XMLSchema-instance",
-			XMLXSI: "CanonicalUser",
-			Type:   "CanonicalUser",
-		},
-		Permission: "FULL_CONTROL",
-	})
+	/*
+		acl := &ACL.AccessControlPolicy{}
+		acl.AccessControlList.Grants = append(acl.AccessControlList.Grants, ACL.Grant{
+			Grantee: ACL.Grantee{
+				XMLNS:  "http://www.w3.org/2001/XMLSchema-instance",
+				XMLXSI: "CanonicalUser",
+				Type:   "CanonicalUser",
+			},
+			Permission: "FULL_CONTROL",
+		})
+	*/
+	acl, err := objAPI.GetBucketAccessControlPolicy(ctx, bucket)
+	if err != nil {
+		writeErrorResponse(w, toAPIErrorCode(err), r.URL)
+		return
+	}
+
 	if err := xml.NewEncoder(w).Encode(acl); err != nil {
 		writeErrorResponse(w, toAPIErrorCode(err), r.URL)
 		return
 	}
 
 	w.(http.Flusher).Flush()
+}
+
+func (api objectAPIHandlers) PutObjectACLHandler(w http.ResponseWriter, r *http.Request) {
+	//FIXME
 }
 
 // GetObjectACLHandler - GET Object ACL
@@ -127,15 +151,23 @@ func (api objectAPIHandlers) GetObjectACLHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	acl := &accessControlPolicy{}
-	acl.AccessControlList.Grants = append(acl.AccessControlList.Grants, grant{
-		Grantee: grantee{
-			XMLNS:  "http://www.w3.org/2001/XMLSchema-instance",
-			XMLXSI: "CanonicalUser",
-			Type:   "CanonicalUser",
-		},
-		Permission: "FULL_CONTROL",
-	})
+	/*
+		acl := &ACL.AccessControlPolicy{}
+		acl.AccessControlList.Grants = append(acl.AccessControlList.Grants, ACL.Grant{
+			Grantee: ACL.Grantee{
+				XMLNS:  "http://www.w3.org/2001/XMLSchema-instance",
+				XMLXSI: "CanonicalUser",
+				Type:   "CanonicalUser",
+			},
+			Permission: "FULL_CONTROL",
+		})
+	*/
+	acl, err := objAPI.GetObjectAccessControlPolicy(ctx, bucket, object)
+	if err != nil {
+		writeErrorResponse(w, toAPIErrorCode(err), r.URL)
+		return
+	}
+
 	if err := xml.NewEncoder(w).Encode(acl); err != nil {
 		writeErrorResponse(w, toAPIErrorCode(err), r.URL)
 		return

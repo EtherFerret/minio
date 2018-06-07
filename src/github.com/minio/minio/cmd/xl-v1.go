@@ -47,6 +47,8 @@ type xlObjects struct {
 
 	// TODO: ListObjects pool management, should be removed in future.
 	listPool *treeWalkPool
+
+	*DefaultObjectAPI
 }
 
 // list of all errors that can be ignored in tree walk operation in XL

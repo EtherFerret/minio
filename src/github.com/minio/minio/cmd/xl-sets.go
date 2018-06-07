@@ -78,6 +78,8 @@ type xlSets struct {
 
 	// Pack level listObjects pool management.
 	listPool *treeWalkPool
+
+	DefaultObjectAPI
 }
 
 // isConnected - checks if the endpoint is connected or not.

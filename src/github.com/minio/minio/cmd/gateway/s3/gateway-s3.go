@@ -17,8 +17,10 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"strings"
 
@@ -26,8 +28,10 @@ import (
 	miniogo "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/s3utils"
 	"github.com/minio/minio/cmd/logger"
+	"github.com/minio/minio/pkg/acl"
 	"github.com/minio/minio/pkg/auth"
 	"github.com/minio/minio/pkg/hash"
+	"github.com/minio/minio/pkg/lifecycle"
 	"github.com/minio/minio/pkg/policy"
 
 	minio "github.com/minio/minio/cmd"
@@ -316,6 +320,13 @@ func (l *s3Objects) PutObject(ctx context.Context, bucket string, object string,
 		return objInfo, minio.ErrorRespToObjectError(err, bucket, object)
 	}
 
+	if storageClass, ok := metadata["x-amz-storage-class"]; ok {
+		if storageClass == "GLACIER" {
+			// Archive the object right away
+			//TODO
+		}
+	}
+
 	return minio.FromMinioClientObjectInfo(bucket, oi), nil
 }
 
@@ -461,4 +472,80 @@ func (l *s3Objects) DeleteBucketPolicy(ctx context.Context, bucket string) error
 		return minio.ErrorRespToObjectError(err, bucket, "")
 	}
 	return nil
+}
+
+// ACL
+func (l *s3Objects) SetBucketAccessControlPolicy(ctx context.Context, bucket string, aclPolicy *acl.AccessControlPolicy) error {
+	var bytesBuffer bytes.Buffer
+	bytesBuffer.WriteString(xml.Header)
+	e := xml.NewEncoder(&bytesBuffer)
+	err := e.Encode(aclPolicy)
+	if err != nil {
+		// This should not happen.
+		logger.LogIf(ctx, err)
+		return minio.ErrorRespToObjectError(err, bucket)
+	}
+	data := bytesBuffer.Bytes()
+
+	if err := l.Client.SetBucketAccessControlPolicy(bucket, string(data)); err != nil {
+		logger.LogIf(ctx, err)
+		return minio.ErrorRespToObjectError(err, bucket)
+	}
+
+	return nil
+}
+
+func (l *s3Objects) GetBucketAccessControlPolicy(ctx context.Context, bucket string) (*acl.AccessControlPolicy, error) {
+	data, err := l.Client.GetBucketAccessControlPolicy(bucket)
+	if err != nil {
+		logger.LogIf(ctx, err)
+		return nil, minio.ErrorRespToObjectError(err, bucket)
+	}
+
+	aclPolicy, err := acl.ParseConfig(strings.NewReader(data), bucket)
+	return aclPolicy, minio.ErrorRespToObjectError(err, bucket)
+}
+
+func (l *s3Objects) SetObjectAccessControlPolicy(ctx context.Context, bucket, object string, aclPolicy *acl.AccessControlPolicy) error {
+	var bytesBuffer bytes.Buffer
+	bytesBuffer.WriteString(xml.Header)
+	e := xml.NewEncoder(&bytesBuffer)
+	err := e.Encode(aclPolicy)
+	if err != nil {
+		// This should not happen.
+		logger.LogIf(ctx, err)
+		return minio.ErrorRespToObjectError(err, bucket)
+	}
+	data := bytesBuffer.Bytes()
+
+	if err := l.Client.SetObjectAccessControlPolicy(bucket, object, string(data)); err != nil {
+		logger.LogIf(ctx, err)
+		return minio.ErrorRespToObjectError(err, bucket)
+	}
+
+	return nil
+}
+
+func (l *s3Objects) GetObjectAccessControlPolicy(ctx context.Context, bucket, object string) (*acl.AccessControlPolicy, error) {
+	data, err := l.Client.GetObjectAccessControlPolicy(bucket, object)
+	if err != nil {
+		logger.LogIf(ctx, err)
+		return nil, minio.ErrorRespToObjectError(err, bucket)
+	}
+
+	aclPolicy, err := acl.ParseConfig(strings.NewReader(data), bucket)
+	return aclPolicy, minio.ErrorRespToObjectError(err, bucket)
+}
+
+// Lifecycle
+func (l *s3Objects) SetBucketLifecycle(ctx context.Context, bucket string, lifecycle *lifecycle.Lifecycle) error {
+	return minio.NotImplemented{}
+}
+
+func (l *s3Objects) GetBucketLifecycle(ctx context.Context, bucket string) (*lifecycle.Lifecycle, error) {
+	return nil, minio.NotImplemented{}
+}
+
+func (l *s3Objects) DeleteBucketLifecycle(ctx context.Context, bucket string) error {
+	return minio.NotImplemented{}
 }

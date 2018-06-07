@@ -345,6 +345,7 @@ type gcsGateway struct {
 	client    *storage.Client
 	projectID string
 	ctx       context.Context
+	minio.DefaultObjectAPI
 }
 
 // Returns projectID from the GOOGLE_APPLICATION_CREDENTIALS file.

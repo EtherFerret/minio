@@ -328,6 +328,7 @@ func ossToObjectError(err error, params ...string) error {
 type ossObjects struct {
 	minio.GatewayUnsupported
 	Client *oss.Client
+	minio.DefaultObjectAPI
 }
 
 // Shutdown saves any gateway metadata to disk

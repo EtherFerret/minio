@@ -52,6 +52,7 @@ type siaObjects struct {
 	TempDir  string // Temporary storage location for file transfers.
 	RootDir  string // Root directory to store files on Sia.
 	password string // Sia password for uploading content in authenticated manner.
+	minio.DefaultObjectAPI
 }
 
 func init() {

@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net"
@@ -300,6 +301,7 @@ func getResource(path string, host string, domain string) (string, error) {
 
 // If none of the http routes match respond with MethodNotAllowed
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("method not found\n")
 	writeErrorResponse(w, ErrMethodNotAllowed, r.URL)
 	return
 }
