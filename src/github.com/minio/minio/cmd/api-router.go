@@ -69,12 +69,14 @@ func registerAPIRouter(router *mux.Router) {
 		bucket.Methods("POST").Path("/{object:.+}").HandlerFunc(httpTraceAll(api.NewMultipartUploadHandler)).Queries("uploads", "")
 		// AbortMultipartUpload
 		bucket.Methods("DELETE").Path("/{object:.+}").HandlerFunc(httpTraceAll(api.AbortMultipartUploadHandler)).Queries("uploadId", "{uploadId:.*}")
-		// GetObjectACL - this is a dummy call.
+		// GetObjectACL
 		bucket.Methods("GET").Path("/{object:.+}").HandlerFunc(httpTraceHdrs(api.GetObjectACLHandler)).Queries("acl", "")
 		// GetObject
 		bucket.Methods("GET").Path("/{object:.+}").HandlerFunc(httpTraceHdrs(api.GetObjectHandler))
 		// CopyObject
 		bucket.Methods("PUT").Path("/{object:.+}").HeadersRegexp("X-Amz-Copy-Source", ".*?(\\/|%2F).*?").HandlerFunc(httpTraceAll(api.CopyObjectHandler))
+		// PutObjectACL
+		bucket.Methods("PUT").Path("/{object:.+}").HandlerFunc(httpTraceHdrs(api.PutObjectACLHandler)).Queries("acl", "")
 		// PutObject
 		bucket.Methods("PUT").Path("/{object:.+}").HandlerFunc(httpTraceHdrs(api.PutObjectHandler))
 		// DeleteObject
@@ -85,9 +87,10 @@ func registerAPIRouter(router *mux.Router) {
 		bucket.Methods("GET").HandlerFunc(httpTraceAll(api.GetBucketLocationHandler)).Queries("location", "")
 		// GetBucketPolicy
 		bucket.Methods("GET").HandlerFunc(httpTraceAll(api.GetBucketPolicyHandler)).Queries("policy", "")
-
-		// GetBucketACL -- this is a dummy call.
+		// GetBucketACL
 		bucket.Methods("GET").HandlerFunc(httpTraceAll(api.GetBucketACLHandler)).Queries("acl", "")
+		// GetBucketLifecycle
+		bucket.Methods("GET").HandlerFunc(httpTraceAll(api.GetBucketLifecycleHandler)).Queries("lifecycle", "")
 
 		// GetBucketNotification
 		bucket.Methods("GET").HandlerFunc(httpTraceAll(api.GetBucketNotificationHandler)).Queries("notification", "")
@@ -101,6 +104,10 @@ func registerAPIRouter(router *mux.Router) {
 		bucket.Methods("GET").HandlerFunc(httpTraceAll(api.ListObjectsV1Handler))
 		// PutBucketPolicy
 		bucket.Methods("PUT").HandlerFunc(httpTraceAll(api.PutBucketPolicyHandler)).Queries("policy", "")
+		// PutBucketACL
+		bucket.Methods("PUT").HandlerFunc(httpTraceAll(api.PutBucketACLHandler)).Queries("acl", "")
+		// PutBucketLifecycle
+		bucket.Methods("PUT").HandlerFunc(httpTraceAll(api.PutBucketLifecycleHandler)).Queries("lifecycle", "")
 		// PutBucketNotification
 		bucket.Methods("PUT").HandlerFunc(httpTraceAll(api.PutBucketNotificationHandler)).Queries("notification", "")
 		// PutBucket
@@ -113,6 +120,8 @@ func registerAPIRouter(router *mux.Router) {
 		bucket.Methods("POST").HandlerFunc(httpTraceAll(api.DeleteMultipleObjectsHandler)).Queries("delete", "")
 		// DeleteBucketPolicy
 		bucket.Methods("DELETE").HandlerFunc(httpTraceAll(api.DeleteBucketPolicyHandler)).Queries("policy", "")
+		// DeleteBucketLifecycle
+		bucket.Methods("DELETE").HandlerFunc(httpTraceAll(api.DeleteBucketLifecycleHandler)).Queries("lifecycle", "")
 		// DeleteBucket
 		bucket.Methods("DELETE").HandlerFunc(httpTraceAll(api.DeleteBucketHandler))
 	}

@@ -21,7 +21,9 @@ import (
 	"io"
 	"time"
 
+	"github.com/minio/minio/pkg/acl"
 	"github.com/minio/minio/pkg/hash"
+	"github.com/minio/minio/pkg/lifecycle"
 	"github.com/minio/minio/pkg/madmin"
 	"github.com/minio/minio/pkg/policy"
 )
@@ -77,4 +79,16 @@ type ObjectLayer interface {
 	// Supported operations check
 	IsNotificationSupported() bool
 	IsEncryptionSupported() bool
+
+	// AccessControlPolicy operations
+	SetBucketAccessControlPolicy(context.Context, string, *acl.AccessControlPolicy) error
+	GetBucketAccessControlPolicy(context.Context, string) (*acl.AccessControlPolicy, error)
+
+	SetObjectAccessControlPolicy(context.Context, string, string, *acl.AccessControlPolicy) error
+	GetObjectAccessControlPolicy(context.Context, string, string) (*acl.AccessControlPolicy, error)
+
+	// Lifecycle operations
+	SetBucketLifecycle(context.Context, string, *lifecycle.Lifecycle) error
+	GetBucketLifecycle(context.Context, string) (*lifecycle.Lifecycle, error)
+	DeleteBucketLifecycle(context.Context, string) error
 }

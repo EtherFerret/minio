@@ -102,7 +102,9 @@ func b2GatewayMain(ctx *cli.Context) {
 }
 
 // B2 implements Minio Gateway
-type B2 struct{}
+type B2 struct {
+	minio.DefaultObjectAPI
+}
 
 // Name implements Gateway interface.
 func (g *B2) Name() string {
@@ -137,6 +139,7 @@ type b2Objects struct {
 	creds    auth.Credentials
 	b2Client *b2.B2
 	ctx      context.Context
+	minio.DefaultObjectAPI
 }
 
 // Convert B2 errors to minio object layer errors.

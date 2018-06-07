@@ -299,6 +299,7 @@ func azurePropertiesToS3Meta(meta storage.BlobMetadata, props storage.BlobProper
 type azureObjects struct {
 	minio.GatewayUnsupported
 	client storage.BlobStorageClient // Azure sdk client
+	minio.DefaultObjectAPI
 }
 
 // Convert azure errors to minio object layer errors.

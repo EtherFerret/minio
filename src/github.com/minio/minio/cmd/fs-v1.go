@@ -69,6 +69,8 @@ type FSObjects struct {
 
 	// To manage the appendRoutine go-routines
 	nsMutex *nsLockMap
+
+	DefaultObjectAPI
 }
 
 // Represents the background append file.

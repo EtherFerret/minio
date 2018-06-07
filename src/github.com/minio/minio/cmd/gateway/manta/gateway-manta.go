@@ -234,6 +234,7 @@ func (g *Manta) Production() bool {
 type tritonObjects struct {
 	minio.GatewayUnsupported
 	client *storage.StorageClient
+	minio.DefaultObjectAPI
 }
 
 // Shutdown - save any gateway metadata to disk

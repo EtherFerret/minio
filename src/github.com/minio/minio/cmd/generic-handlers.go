@@ -448,9 +448,9 @@ func ignoreNotImplementedObjectResources(req *http.Request) bool {
 
 // List of not implemented bucket queries
 var notimplementedBucketResourceNames = map[string]bool{
-	"acl":            true,
-	"cors":           true,
-	"lifecycle":      true,
+	//"acl":            true,
+	"cors": true,
+	//"lifecycle":      true,
 	"logging":        true,
 	"replication":    true,
 	"tagging":        true,
@@ -466,11 +466,11 @@ var notimplementedBucketResourceNames = map[string]bool{
 // List of not implemented object queries
 var notimplementedObjectResourceNames = map[string]bool{
 	"torrent": true,
-	"acl":     true,
+	//"acl":     true,
 	"policy":  true,
 	"tagging": true,
-	"restore": true,
-	"select":  true,
+	//"restore": true,
+	"select": true,
 }
 
 // Resource handler ServeHTTP() wrapper
