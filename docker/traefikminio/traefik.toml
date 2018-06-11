@@ -1,0 +1,21 @@
+defaultEntryPoints = ["http"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+
+[file]
+watch = true
+
+[backends]
+  [backends.backend1]
+    [backends.backend1.servers.server1]
+      url = "http://10.88.88.136:8080"
+
+[frontends]
+    [frontends.frontend1]
+    backend = "backend1"
+    passHostHeader = true
+    [frontends.frontend1.routes.test_1]
+    rule = "HeadersRegexp: Authorization, ^AWS4-HMAC-SHA256 Credential=9CRPC6W8EHIOJGOQ93Q6"
+    
